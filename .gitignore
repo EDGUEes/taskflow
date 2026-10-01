@@ -1,0 +1,32 @@
+# Configuración con credenciales reales
+js/config.js
+.env
+.env.local
+.env.*.local
+
+# Respaldos y exportaciones con datos reales
+*_respaldo_*.json
+*_backup_*.json
+*RESCATE*.json
+backups/
+dumps/
+*.sql.bak
+
+# Dependencias y builds
+node_modules/
+dist/
+build/
+.cache/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

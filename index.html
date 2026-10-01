@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0B0E14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TaskFlow" />
+  <title>TaskFlow</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- SPLASH -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-mark">
+        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+          <rect width="56" height="56" rx="16" fill="url(#sg)"/>
+          <path d="M16 28L24 36L40 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="sg" x1="0" y1="0" x2="56" y2="56"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div class="splash-name">TaskFlow</div>
+      <div class="splash-tag">Gestión de procesos recurrentes</div>
+    </div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="hidden">
+    <div class="login-box">
+      <div class="login-mark">
+        <svg width="48" height="48" viewBox="0 0 56 56" fill="none">
+          <rect width="56" height="56" rx="16" fill="url(#lg)"/>
+          <path d="M16 28L24 36L40 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="56" y2="56"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs>
+        </svg>
+      </div>
+      <h1 class="login-title">TaskFlow</h1>
+      <p class="login-sub" id="login-sub">Inicia sesión para ver tus tareas</p>
+
+      <div id="login-form-fields">
+        <input id="login-email" type="email" inputmode="email" placeholder="Correo electrónico" autocomplete="username" class="login-input" />
+        <input id="login-password" type="password" placeholder="Contraseña" autocomplete="current-password" class="login-input" />
+        <button id="login-btn" class="login-submit">Entrar</button>
+        <div id="login-msg" class="login-msg"></div>
+      </div>
+
+      <!-- Config (shown if cloud not set up yet) -->
+      <div id="login-config" class="hidden">
+        <p class="login-config-note">Primero conecta tu nube de Supabase:</p>
+        <input id="login-url" type="text" placeholder="URL del proyecto (https://xxxxx.supabase.co)" class="login-input" />
+        <input id="login-key" type="text" placeholder="Llave pública (anon key)" class="login-input" />
+        <button id="login-config-save" class="login-submit">Guardar y continuar</button>
+        <div id="login-config-msg" class="login-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+
+    <!-- HEADER -->
+    <header id="topbar">
+      <div class="brand">
+        <svg width="26" height="26" viewBox="0 0 56 56" fill="none">
+          <rect width="56" height="56" rx="16" fill="url(#bg)"/>
+          <path d="M16 28L24 36L40 18" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="bg" x1="0" y1="0" x2="56" y2="56"><stop stop-color="#7C3AED"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs>
+        </svg>
+        <span>TaskFlow</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="btn-backup" class="icon-btn" title="Respaldo y nube" style="position:relative;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <i id="cloud-status" style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--text-4);border:1.5px solid var(--bg);"></i>
+        </button>
+        <button id="btn-history" class="icon-btn" title="Historial">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><polyline points="12 7 12 12 15 15"/></svg>
+        </button>
+        <button id="btn-notify" class="icon-btn" title="Notificaciones">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- BACKUP MODAL -->
+    <div id="backup-overlay" class="overlay hidden" style="position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);display:flex;align-items:flex-end;">
+      <div class="sheet">
+        <div class="sheet-grip"></div>
+        <div class="sheet-header">
+          <button class="text-btn hidden"></button>
+          <h2>Respaldo de tareas</h2>
+          <button id="backup-close" class="icon-btn-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="sheet-body">
+          <p style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:18px;">Descarga un archivo con todas tus tareas y guías. Guárdalo en tu teléfono o Drive. Si algún día pierdes los datos, lo cargas aquí y recuperas todo.</p>
+          <button id="do-export" class="btn-fill" style="width:100%;margin-bottom:12px;">⬇ Descargar respaldo</button>
+          <label id="do-import-label" class="btn-secondary" style="width:100%;display:block;text-align:center;cursor:pointer;padding:14px;border-radius:var(--r);background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-weight:500;">
+            ⬆ Restaurar desde archivo
+            <input id="do-import" type="file" accept=".json,application/json" style="display:none;" />
+          </label>
+          <p style="font-size:11px;color:var(--text-3);margin-top:16px;line-height:1.5;">💡 Consejo: descarga un respaldo cada semana o antes de actualizar la app. Así nunca pierdes nada.</p>
+
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);margin-bottom:12px;">☁️ Guardado en la nube (automático)</div>
+            <p style="font-size:12.5px;color:var(--text-3);line-height:1.5;margin-bottom:12px;">Conecta Supabase para que tus tareas se guarden solas en internet. Aunque borres Chrome o cambies de teléfono, no pierdes nada. <span id="cloud-state-label" style="font-weight:600;"></span></p>
+            <div class="field" style="margin-bottom:10px;">
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);">URL del proyecto</label>
+              <input id="cloud-url" type="text" placeholder="https://xxxxx.supabase.co" autocomplete="off" style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;padding:11px 13px;outline:none;width:100%;" />
+            </div>
+            <div class="field" style="margin-bottom:12px;">
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);">Llave pública (anon key)</label>
+              <input id="cloud-key" type="text" placeholder="eyJhbGc..." autocomplete="off" style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-size:13px;padding:11px 13px;outline:none;width:100%;" />
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button id="cloud-test" style="flex:1;padding:12px;border-radius:var(--r);background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-weight:500;font-size:13px;">Probar conexión</button>
+              <button id="cloud-save" class="btn-fill" style="flex:1;padding:12px;font-size:13px;">Conectar</button>
+            </div>
+            <div id="cloud-msg" style="font-size:12px;margin-top:10px;line-height:1.4;"></div>
+            <div id="cloud-sync-actions" class="hidden" style="display:flex;gap:8px;margin-top:10px;">
+              <button id="cloud-force-push" style="flex:1;padding:11px;border-radius:var(--r-sm);background:var(--green-soft);border:1px solid rgba(16,185,129,0.3);color:var(--green-2);font-weight:600;font-size:12px;">⬆ Subir las de aquí</button>
+              <button id="cloud-force-pull" style="flex:1;padding:11px;border-radius:var(--r-sm);background:var(--blue-soft);border:1px solid rgba(56,189,248,0.3);color:var(--blue);font-weight:600;font-size:12px;">⬇ Bajar de la nube</button>
+            </div>
+            <p id="cloud-sync-hint" class="hidden" style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5;">💡 Si un dispositivo tiene las tareas buenas, ábrelo y toca <strong>"Subir las de aquí"</strong>. En el otro, toca <strong>"Bajar de la nube"</strong>. Así quedan iguales.</p>
+            <div id="account-status" class="hidden" style="margin-top:12px;padding:12px;border-radius:var(--r-sm);background:var(--green-soft);border:1px solid rgba(16,185,129,0.25);">
+              <div style="font-size:11px;color:var(--text-3);">Sesión iniciada como</div>
+              <div id="account-email" style="font-size:14px;font-weight:600;color:var(--green-2);word-break:break-all;"></div>
+              <button id="logout-btn" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:var(--red-soft);border:1px solid rgba(251,113,133,0.3);color:var(--red);font-weight:600;font-size:12px;">Cerrar sesión</button>
+            </div>
+            <button id="cloud-merge" class="hidden" style="width:100%;margin-top:10px;padding:11px;border-radius:var(--r-sm);background:var(--accent-soft);border:1px solid rgba(124,58,237,0.3);color:var(--violet-2);font-weight:600;font-size:12px;">🔗 Unir todos mis dispositivos (mismo casillero)</button>
+            <button id="cloud-disconnect" class="hidden" style="width:100%;margin-top:10px;padding:10px;border-radius:var(--r-sm);background:var(--red-soft);border:1px solid rgba(251,113,133,0.3);color:var(--red);font-weight:500;font-size:12px;">Desconectar nube</button>
+          </div>
+
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);margin-bottom:12px;">Cargar datos de ejemplo</div>
+            <p style="font-size:12.5px;color:var(--text-3);line-height:1.5;margin-bottom:12px;">Carga un conjunto de tareas de ejemplo con distintas recurrencias y prioridades para probar la aplicación.</p>
+            <button id="do-recovery" style="width:100%;padding:13px;border-radius:var(--r);background:var(--accent-soft);border:1px solid rgba(124,58,237,0.3);color:var(--violet-2);font-weight:600;font-size:14px;">↺ Cargar tareas de ejemplo</button>
+          </div>
+
+          <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);margin-bottom:12px;">Empezar de cero</div>
+            <p style="font-size:12.5px;color:var(--text-3);line-height:1.5;margin-bottom:12px;">Si tienes tareas de ejemplo que no son tuyas y quieres limpiarlas, usa esto. <strong style="color:var(--text-2);">Antes descarga un respaldo si tienes algo que guardar.</strong></p>
+            <button id="do-reset" style="width:100%;padding:13px;border-radius:var(--r);background:var(--red-soft);border:1px solid rgba(251,113,133,0.3);color:var(--red);font-weight:600;font-size:14px;">🗑 Borrar todo y empezar limpio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <main id="main-content">
+
+      <!-- ===== TODAY ===== -->
+      <section id="view-today" class="view active">
+        <div class="hero">
+          <div class="hero-greeting" id="hero-greeting">Buenos días</div>
+          <div class="hero-date" id="hero-date">—</div>
+          <div class="progress-ring-wrap">
+            <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="progress-center">
+              <span class="progress-num" id="progress-num">0/0</span>
+              <span class="progress-label">hoy</span>
+            </div>
+          </div>
+          <div class="hero-sub" id="hero-sub">Cargando…</div>
+        </div>
+
+        <!-- Overdue alert -->
+        <div id="overdue-banner" class="overdue-banner hidden">
+          <div class="overdue-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="overdue-text">
+            <strong id="overdue-count">0 tareas rezagadas</strong>
+            <span>Tócalas para ponerte al día</span>
+          </div>
+          <svg class="overdue-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div id="overdue-list" class="task-list compact hidden"></div>
+
+        <!-- Today's tasks -->
+        <div class="block-header">
+          <h3>Para hoy</h3>
+        </div>
+        <div id="today-list" class="task-list"></div>
+        <div id="today-empty" class="empty-state hidden">
+          <div class="empty-emoji">✅</div>
+          <p>No tienes nada agendado hoy.<br>¡Disfruta tu día!</p>
+        </div>
+      </section>
+
+      <!-- ===== CALENDAR ===== -->
+      <section id="view-calendar" class="view hidden">
+        <div class="cal-header">
+          <h1 class="page-title">Calendario</h1>
+          <div class="cal-toggle">
+            <button class="cal-mode active" data-mode="month">Mes</button>
+            <button class="cal-mode" data-mode="week">Semana</button>
+          </div>
+        </div>
+
+        <div class="cal-nav">
+          <button id="cal-prev" class="cal-arrow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div id="cal-period" class="cal-period">—</div>
+          <button id="cal-next" class="cal-arrow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <button id="cal-today-btn" class="cal-today-btn">Hoy</button>
+
+        <!-- Month grid -->
+        <div id="cal-month" class="cal-month">
+          <div class="cal-weekdays">
+            <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+          </div>
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+
+        <!-- Week view -->
+        <div id="cal-week" class="cal-week hidden"></div>
+
+        <!-- Selected day detail -->
+        <div id="cal-day-detail" class="cal-day-detail">
+          <div class="block-header">
+            <h3 id="cal-day-title">—</h3>
+          </div>
+          <div id="cal-day-list" class="task-list"></div>
+          <div id="cal-day-empty" class="empty-state-sm hidden">
+            <p>Sin tareas este día</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TASKS ===== -->
+      <section id="view-tasks" class="view hidden">
+        <div class="page-head">
+          <h1 class="page-title">Mis Tareas</h1>
+        </div>
+
+        <div class="search-box">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="search-input" type="search" placeholder="Buscar tareas…" autocomplete="off" />
+        </div>
+
+        <div class="filter-chips">
+          <button class="chip active" data-filter="all">Todas</button>
+          <button class="chip" data-filter="daily">Diarias</button>
+          <button class="chip" data-filter="weekly">Semanales</button>
+          <button class="chip" data-filter="biweekly">Quincenales</button>
+          <button class="chip" data-filter="monthly">Mensuales</button>
+          <button class="chip" data-filter="quarterly">Trimestrales</button>
+          <button class="chip" data-filter="custom">Manuales</button>
+        </div>
+
+        <div id="tasks-list" class="task-list"></div>
+        <div id="tasks-empty" class="empty-state hidden">
+          <div class="empty-emoji">📋</div>
+          <p>No hay tareas todavía.<br>Crea tu primera con el botón +</p>
+        </div>
+      </section>
+
+      <!-- ===== GUÍAS (mini-manuales) ===== -->
+      <section id="view-guides" class="view hidden">
+        <div class="page-head">
+          <h1 class="page-title">Guías</h1>
+        </div>
+        <p class="guides-intro">Tus procesos paso a paso. Tócalos cuando necesites recordar cómo se hace algo.</p>
+        <div class="search-box">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="guides-search" type="search" placeholder="Buscar en guías…" autocomplete="off" />
+        </div>
+        <div id="guides-list" class="guides-list"></div>
+        <button id="new-guide-btn" class="add-guide-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Crear nueva guía
+        </button>
+      </section>
+
+      <!-- ===== HISTORY ===== -->
+      <section id="view-history" class="view hidden">
+        <div class="page-head">
+          <h1 class="page-title">Historial</h1>
+        </div>
+        <div id="history-stats" class="history-stats"></div>
+        <div id="history-list" class="task-list"></div>
+        <div id="history-empty" class="empty-state hidden">
+          <div class="empty-emoji">📈</div>
+          <p>Aquí verás todo lo que completes.<br>¡Empieza marcando una tarea!</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottomnav">
+      <button class="nav-item active" data-view="today">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Hoy</span>
+        <i id="nav-badge" class="nav-badge hidden"></i>
+      </button>
+      <button class="nav-item" data-view="calendar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Calendario</span>
+      </button>
+      <button id="nav-fab" class="nav-fab">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" data-view="tasks">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Tareas</span>
+      </button>
+      <button class="nav-item" data-view="guides">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Guías</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ============ MODAL: TASK FORM ============ -->
+  <div id="form-overlay" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-header">
+        <button id="form-back" class="text-btn hidden">← Atrás</button>
+        <h2 id="form-title">Nueva tarea</h2>
+        <button id="form-close" class="icon-btn-sm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="sheet-body">
+
+        <!-- STEP 1: Choose template -->
+        <div id="form-step-1" class="form-step active">
+          <p class="step-intro">¿Qué tipo de tarea es? Elige una plantilla y te armo la guía automáticamente.</p>
+          <div class="template-grid" id="template-grid"></div>
+        </div>
+
+        <!-- STEP 2: Fill details -->
+        <div id="form-step-2" class="form-step hidden">
+          <div class="field">
+            <label for="task-name">Nombre de la tarea</label>
+            <input id="task-name" type="text" placeholder="Ej: Conciliación bancaria BAC" autocomplete="off" />
+          </div>
+
+          <!-- Guided fields (template-specific) -->
+          <div id="guided-fields"></div>
+
+          <!-- Checklist builder -->
+          <div class="field">
+            <label>Pasos (checklist) — los marcas al hacer la tarea</label>
+            <div id="checklist-builder" class="checklist-builder"></div>
+            <button id="add-step-btn" class="add-step-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar paso
+            </button>
+          </div>
+
+          <!-- Recurrence -->
+          <div class="field">
+            <label>¿Cada cuánto se repite?</label>
+            <div class="rec-grid">
+              <button class="rec-btn active" data-rec="daily"><span class="rec-emoji">📅</span>Diaria</button>
+              <button class="rec-btn" data-rec="weekly"><span class="rec-emoji">📆</span>Semanal</button>
+              <button class="rec-btn" data-rec="biweekly"><span class="rec-emoji">🗓️</span>Quincenal</button>
+              <button class="rec-btn" data-rec="monthly"><span class="rec-emoji">📊</span>Mensual</button>
+              <button class="rec-btn" data-rec="quarterly"><span class="rec-emoji">📈</span>Trimestral</button>
+              <button class="rec-btn" data-rec="fourmonths"><span class="rec-emoji">🔄</span>4 meses</button>
+              <button class="rec-btn" data-rec="custom"><span class="rec-emoji">📌</span>Manual</button>
+            </div>
+          </div>
+
+          <!-- Weekly config -->
+          <div id="cfg-weekly" class="cfg-block hidden">
+            <label>¿Qué días?</label>
+            <div class="day-picker" data-target="week">
+              <button class="day-btn" data-day="1">L</button>
+              <button class="day-btn" data-day="2">M</button>
+              <button class="day-btn" data-day="3">X</button>
+              <button class="day-btn" data-day="4">J</button>
+              <button class="day-btn" data-day="5">V</button>
+              <button class="day-btn" data-day="6">S</button>
+              <button class="day-btn" data-day="0">D</button>
+            </div>
+          </div>
+
+          <!-- Biweekly config -->
+          <div id="cfg-biweekly" class="cfg-block hidden">
+            <label>¿Qué días del mes?</label>
+            <div class="seg-control">
+              <button class="seg active" data-bi="1-15">Día 1 y 15</button>
+              <button class="seg" data-bi="15-last">15 y último</button>
+            </div>
+          </div>
+
+          <!-- Monthly config -->
+          <div id="cfg-monthly" class="cfg-block hidden">
+            <label>¿Qué día del mes?</label>
+            <div class="month-input-row">
+              <input id="monthly-day" type="number" min="1" max="31" value="1" />
+              <span>de cada mes</span>
+            </div>
+          </div>
+
+          <!-- Custom config -->
+          <div id="cfg-custom" class="cfg-block hidden">
+            <label>Fecha específica</label>
+            <input id="custom-date" type="date" />
+          </div>
+
+          <!-- Time + Priority row -->
+          <div class="field-row">
+            <div class="field half">
+              <label>Recordar a las</label>
+              <input id="task-time" type="time" value="08:00" />
+            </div>
+            <div class="field half">
+              <label>Prioridad</label>
+              <div class="prio-seg">
+                <button class="prio-s" data-prio="low" title="Baja">●</button>
+                <button class="prio-s active" data-prio="medium" title="Media">●</button>
+                <button class="prio-s" data-prio="high" title="Alta">●</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-footer" id="form-footer">
+        <button id="btn-delete" class="btn-ghost-danger hidden">Eliminar</button>
+        <button id="btn-save" class="btn-fill hidden">Guardar tarea</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: DETAIL / DO TASK ============ -->
+  <div id="detail-overlay" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-header">
+        <h2 id="detail-title">Tarea</h2>
+        <button id="detail-close" class="icon-btn-sm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div id="detail-meta" class="detail-chips"></div>
+
+        <!-- Connection note (linked tasks) -->
+        <div id="detail-connect" class="detail-connect hidden"></div>
+
+        <!-- Linked guide button -->
+        <button id="detail-guide-link" class="detail-guide-link hidden">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span>Ver guía completa de este proceso</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
+        <!-- Move to another day (one-time tasks) -->
+        <div id="detail-move" class="detail-move hidden">
+          <label>📆 Mover a otro día</label>
+          <input id="detail-move-date" type="date" />
+        </div>
+
+        <!-- Progress bar for checklist -->
+        <div id="detail-progress-wrap" class="detail-progress-wrap hidden">
+          <div class="detail-progress-bar"><div id="detail-progress-fill" class="detail-progress-fill"></div></div>
+          <span id="detail-progress-text">0 de 0 pasos</span>
+        </div>
+
+        <!-- Guided info display -->
+        <div id="detail-guided" class="detail-guided"></div>
+
+        <!-- Interactive checklist -->
+        <div id="detail-checklist" class="detail-checklist"></div>
+
+        <!-- History -->
+        <div id="detail-history" class="detail-hist hidden">
+          <div class="mini-label">Últimas veces</div>
+          <div id="detail-hist-list"></div>
+        </div>
+      </div>
+      <div class="sheet-footer">
+        <button id="detail-edit" class="btn-ghost">Editar</button>
+        <button id="detail-done" class="btn-fill">✓ Completar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: GUIDE DETAIL ============ -->
+  <div id="guide-overlay" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-header">
+        <button id="guide-back" class="text-btn hidden">← Tarea</button>
+        <h2 id="guide-title">Guía</h2>
+        <button id="guide-close" class="icon-btn-sm">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div id="guide-meta" class="guide-meta"></div>
+        <div class="guide-steps-head">
+          <span class="mini-label">Pasos del proceso</span>
+          <button id="guide-edit-toggle" class="guide-edit-btn">✏️ Editar</button>
+        </div>
+        <div id="guide-steps" class="guide-steps"></div>
+        <div id="guide-cases" class="guide-cases"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Configuración local (crear desde js/config.example.js). No se sube al repo. -->
+  <script src="js/config.js" onerror="window.APP_CONFIG=window.APP_CONFIG||{}"></script>
+  <script src="js/seed-data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
